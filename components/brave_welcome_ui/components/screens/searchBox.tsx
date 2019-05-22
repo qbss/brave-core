@@ -6,8 +6,8 @@
 import * as React from 'react'
 
 // Feature-specific components
-import { Content, Title, Paragraph } from 'brave-ui/features/welcome'
-
+import { Content, Title, Paragraph, SelectGrid } from 'brave-ui/features/welcome'
+import { SelectBox } from 'brave-ui/features/shields'
 // Shared components
 import { Button } from 'brave-ui'
 
@@ -21,11 +21,17 @@ interface Props {
   index: number
   currentScreen: number
   onClick: () => void
+  onChange: () => string
+  searchEngineSelected: boolean
+  isDefaultSearchGoogle: boolean
+  // TODO Pass in search options as an array of data and define specific type definition
+  searchOptions: Array<any>
 }
 
 export default class SearchEngineBox extends React.PureComponent<Props, {}> {
   render () {
-    const { index, currentScreen, onClick } = this.props
+    const { index, currentScreen, onClick, onChange, searchEngineSelected, isDefaultSearchGoogle, searchOptions } = this.props
+    const bodyText = isDefaultSearchGoogle ? `${getLocale('chooseSearchEngine')} ${getLocale('privateExperience')}` : getLocale('chooseSearchEngine')
     return (
       <Content
         zIndex={index}
@@ -36,13 +42,27 @@ export default class SearchEngineBox extends React.PureComponent<Props, {}> {
         <WelcomeSearchImage />
         <Title>{getLocale('setDefaultSearchEngine')}</Title>
         <Paragraph>{getLocale('chooseSearchEngine')}</Paragraph>
-          <Button
-            level='primary'
-            type='accent'
-            size='large'
-            text={getLocale('search')}
-            onClick={onClick}
-          />
+          <SelectGrid>
+            <SelectBox onChange={onChange}>
+              <option key={0} value=''>{getLocale('selectSearchEngine')}</option>
+              {searchOptions.map((option, index) =>
+                <option
+                  key={index + 1}
+                  value={option.value}
+                >
+                  {getLocale(option.name)}
+                </option>
+              )}
+            </SelectBox>
+            <Button
+              level='primary'
+              type='accent'
+              size='large'
+              text={getLocale('search')}
+              disabled={!searchEngineSelected}
+              onClick={onClick}
+            />
+          </SelectGrid>
       </Content>
     )
   }

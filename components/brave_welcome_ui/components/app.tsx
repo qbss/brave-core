@@ -62,12 +62,8 @@ export class WelcomePage extends React.Component<Props, State> {
     this.setState({ currentScreen: this.state.currentScreen + 1 })
   }
 
-  onChangeDefaultSearchEngine = (newDefaultSearch: string) => {
-    this.props.actions.changeDefaultSearchProvider(newDefaultSearch)
-  }
-
-  onClickConfirmDefaultSearchEngine = () => {
-    this.props.actions.goToTabRequested('chrome://settings/search', '_blank')
+  onChangeDefaultSearchEngine = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.props.actions.changeDefaultSearchProvider(event.target.value)
   }
 
   onClickChooseYourTheme = () => {
@@ -95,7 +91,9 @@ export class WelcomePage extends React.Component<Props, State> {
   }
 
   render () {
+    const { defaultSearchProviders } = this.props.welcomeData
     const { currentScreen } = this.state
+
     return (
       <>
         <BackgroundContainer>
@@ -106,7 +104,14 @@ export class WelcomePage extends React.Component<Props, State> {
             <SlideContent>
               <WelcomeBox index={1} currentScreen={this.currentScreen} onClick={this.onClickLetsGo} />
               <ImportBox index={2} currentScreen={this.currentScreen} onClick={this.onClickImport} />
-              <SearchBox index={3} currentScreen={this.currentScreen} onClick={this.onClickConfirmDefaultSearchEngine} onChange={this.onChangeDefaultSearchEngine} />
+              <SearchBox
+                index={3}
+                currentScreen={this.currentScreen}
+                onClick={this.onClickNext}
+                onChange={this.onChangeDefaultSearchEngine}
+                isDefaultSearchGoogle={true}
+                searchProviders={defaultSearchProviders}
+              />
               <ThemeBox index={4} currentScreen={this.currentScreen} onClick={this.onClickChooseYourTheme} />
               <ShieldsBox index={5} currentScreen={this.currentScreen} />
               <RewardsBox index={6} currentScreen={this.currentScreen} onClick={this.onClickRewardsGetStarted} />
@@ -127,8 +132,7 @@ export class WelcomePage extends React.Component<Props, State> {
 }
 
 export const mapStateToProps = (state: Welcome.ApplicationState) => ({
-  welcomeData: state.welcomeData,
-  defaultSearchData: state.defaultSearchData
+  welcomeData: state.welcomeData
 })
 
 export const mapDispatchToProps = (dispatch: Dispatch) => ({

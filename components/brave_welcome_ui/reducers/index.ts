@@ -6,9 +6,7 @@ import { combineReducers } from 'redux'
 
 // Utils
 import welcomeReducer from './welcome_reducer'
-import searchReducer from './search_reducer'
 
 export default combineReducers({
-  welcomeData: welcomeReducer,
-  defaultSearchData: searchReducer
+  welcomeData: welcomeReducer
 })

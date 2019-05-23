@@ -37,13 +37,15 @@ chrome.contextMenus.onClicked.addListener(function (info, tab) {
     case 'addBlockElement': {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs: any) {
         chrome.tabs.sendMessage(tabs[0].id, { type: 'getTargetSelector' }, function (response: any) {
-          if (response) {
-            rule.selector = window.prompt('CSS selector to block: ', `${response}`) || ''
-            chrome.tabs.insertCSS({
-              code: `${rule.selector} {display: none;}`
-            })
-            cosmeticFilterActions.siteCosmeticFilterAdded(rule.host, rule.selector)
+          if (!response) {
+            rule.selector = window.prompt('We were unable to automatically populate a correct CSS selector for you. Please manually enter a CSS selector to block:') || ''
+          } else {
+            rule.selector = window.prompt('CSS selector:', `${response}`) || ''
           }
+          chrome.tabs.insertCSS({
+            code: `${rule.selector} {display: none;}`
+          })
+          cosmeticFilterActions.siteCosmeticFilterAdded(rule.host, rule.selector)
         })
       })
       break

@@ -74,7 +74,7 @@ export default class SearchEngineBox extends React.PureComponent<Props, State> {
               level='primary'
               type='accent'
               size='large'
-              text={getLocale('search')}
+              text={getLocale('setDefault')}
               disabled={!searchEngineSelected}
               onClick={onClick}
             />

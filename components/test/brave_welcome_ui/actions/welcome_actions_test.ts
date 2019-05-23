@@ -4,7 +4,6 @@
 
 import { types } from '../../../brave_welcome_ui/constants/welcome_types'
 import * as actions from '../../../brave_welcome_ui/actions/welcome_actions'
-import { metaProperty } from '@babel/types'
 
 describe('welcome_actions', () => {
   it('importNowRequested', () => {

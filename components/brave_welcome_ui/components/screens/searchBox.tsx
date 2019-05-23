@@ -66,7 +66,7 @@ export default class SearchEngineBox extends React.PureComponent<Props, State> {
                   key={index + 1}
                   value={provider.value}
                 >
-                  {getLocale(provider.name)}
+                  {provider.name}
                 </option>
               )}
             </SelectBox>

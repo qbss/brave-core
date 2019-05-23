@@ -5,8 +5,7 @@ declare namespace Welcome {
 
   export interface State {
     // TODO explicitly type data when API is known
-    defaultSearchProviders: Array<SearchProvider>
+    defaultSearchProviders: Array<any>
   }
 
-  interface SearchProvider {}
 }

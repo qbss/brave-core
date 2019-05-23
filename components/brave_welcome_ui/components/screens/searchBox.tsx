@@ -21,7 +21,7 @@ interface Props {
   index: number
   currentScreen: number
   onClick: () => void
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void
   isDefaultSearchGoogle: boolean
   // TODO Pass in search options as an array of data and define specific type definition
   searchProviders: Array<any>
@@ -39,7 +39,7 @@ export default class SearchEngineBox extends React.PureComponent<Props, State> {
     }
   }
 
-  onChangeDefaultSearchEngine = (event: React.ChangeEvent<HTMLInputElement>) => {
+  onChangeDefaultSearchEngine = (event: React.ChangeEvent<HTMLSelectElement>) => {
     this.setState({ searchEngineSelected: ((event.target.value) !== '') })
     this.props.onChange(event)
   }
@@ -57,7 +57,7 @@ export default class SearchEngineBox extends React.PureComponent<Props, State> {
       >
         <WelcomeSearchImage />
         <Title>{getLocale('setDefaultSearchEngine')}</Title>
-        <Paragraph>{getLocale('chooseSearchEngine')}</Paragraph>
+        <Paragraph>{bodyText}</Paragraph>
           <SelectGrid>
             <SelectBox onChange={this.onChangeDefaultSearchEngine}>
               <option key={0} value=''>{getLocale('selectSearchEngine')}</option>

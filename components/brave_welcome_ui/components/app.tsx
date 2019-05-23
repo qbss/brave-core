@@ -62,7 +62,7 @@ export class WelcomePage extends React.Component<Props, State> {
     this.setState({ currentScreen: this.state.currentScreen + 1 })
   }
 
-  onChangeDefaultSearchEngine = (event: React.ChangeEvent<HTMLInputElement>) => {
+  onChangeDefaultSearchEngine = (event: React.ChangeEvent<HTMLSelectElement>) => {
     this.props.actions.changeDefaultSearchProvider(event.target.value)
   }
 

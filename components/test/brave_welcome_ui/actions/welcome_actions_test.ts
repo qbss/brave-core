@@ -4,6 +4,7 @@
 
 import { types } from '../../../brave_welcome_ui/constants/welcome_types'
 import * as actions from '../../../brave_welcome_ui/actions/welcome_actions'
+import { metaProperty } from '@babel/types'
 
 describe('welcome_actions', () => {
   it('importNowRequested', () => {
@@ -22,11 +23,19 @@ describe('welcome_actions', () => {
     })
   })
 
-  it('closeTabRequested', () => {
-    expect(actions.closeTabRequested()).toEqual({
-      type: types.CLOSE_TAB_REQUESTED,
+  it('importDefaultSearchProviders', () => {
+    expect(actions.importDefaultSearchProviders(['DuckDuckGo', 'Google'])).toEqual({
+      type: types.IMPORT_DEFAULT_SEARCH_PROVIDERS,
       meta: undefined,
-      payload: undefined
+      payload: ['DuckDuckGo', 'Google']
+    })
+  })
+
+  it('changeDefaultSearchProvider', () => {
+    expect(actions.changeDefaultSearchProvider('DuckDuckGo')).toEqual({
+      type: types.CHANGE_DEFAULT_SEARCH_PROVIDER,
+      meta: undefined,
+      payload: 'DuckDuckGo'
     })
   })
 })

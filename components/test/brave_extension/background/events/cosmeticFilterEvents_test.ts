@@ -6,14 +6,31 @@ import '../../../../brave_extension/extension/brave_extension/background/events/
 import cosmeticFilterActions from '../../../../brave_extension/extension/brave_extension/background/actions/cosmeticFilterActions'
 import { ChromeEvent } from '../../../testData'
 
-describe('context menu tests', () => {
-  it('unique selector library ONLY called when \'Block Element\' selected') => {
-  }
+describe('cosmetic filter events', () => {
+  describe('when context menu is opened', () => {
+    it('assigns the base URI', () => {
+      // TODO:
+        // - fire `contextMenuOpened` event
+        // - verify `rule.host` gets assigned
+    })
 
-  it('unique selector library not called when context menu opened', () => {
-  })
+    it('does not call unique selector library', () => {
 
-  it('window.prompt called on right click', () => {
-    
+    })
+
+    describe('when `Block element via the selector` is chosen', () => {
+      it('sends a message to get the target selector', () => {
+
+      })
+
+      it('calls window.prompt', () => {
+
+      })
+
+      it('creates a `siteCosmeticFilterAdded` action', () => {
+
+      })
+    })
+
   })
 })

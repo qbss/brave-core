@@ -19,17 +19,6 @@ describe('cosmetic filter events', () => {
         // - verify `rule.host` gets assigned
       console.log(rule.host)
       // chrome.runtime.onMessage
-
-      chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-        const action = typeof msg === 'string' ? msg : msg.type
-        switch (action) {
-          case 'contextMenuOpened': {
-            rule.host = msg.baseURI
-            break
-          }
-        }
-      })
-
     })
 
     it('does not call unique selector library', () => {

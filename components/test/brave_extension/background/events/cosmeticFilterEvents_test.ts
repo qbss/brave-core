@@ -15,7 +15,7 @@ describe('cosmetic filter events', () => {
     })
 
     it('does not call unique selector library', () => {
-
+      // chrome.tabs.sendMessage should not be called
     })
 
     describe('when `Block element via the selector` is chosen', () => {
@@ -23,8 +23,16 @@ describe('cosmetic filter events', () => {
 
       })
 
-      it('calls window.prompt', () => {
+      describe('when the response has a selector', () => {
+        it('calls window.prompt with selector', () => {
 
+        })
+      })
+
+      describe('when the response DOES NOT have a selector', () => {
+        it('calls window.prompt with `unable to populate` message', () => {
+
+        })
       })
 
       it('creates a `siteCosmeticFilterAdded` action', () => {

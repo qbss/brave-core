@@ -6,13 +6,6 @@
 #ifndef BRAVE_BROWSER_GREASELION_GREASELION_TAB_HELPER_H_
 #define BRAVE_BROWSER_GREASELION_GREASELION_TAB_HELPER_H_
 
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
-
-#include "base/macros.h"
-#include "base/synchronization/lock.h"
 #include "content/public/browser/web_contents_observer.h"
 #include "content/public/browser/web_contents_user_data.h"
 

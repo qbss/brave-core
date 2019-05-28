@@ -12,7 +12,6 @@
 #include "brave/browser/brave_browser_process_impl.h"
 #include "brave/components/greaselion/browser/greaselion_service.h"
 #include "brave/components/greaselion/browser/greaselion_service_impl.h"
-#include "chrome/browser/profiles/incognito_helpers.h"
 #include "chrome/browser/profiles/profile.h"
 #include "components/keyed_service/content/browser_context_dependency_manager.h"
 #include "components/keyed_service/core/keyed_service.h"

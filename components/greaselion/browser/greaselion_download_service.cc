@@ -16,9 +16,13 @@
 #include "base/macros.h"
 #include "base/strings/utf_string_conversions.h"
 #include "base/task/post_task.h"
+#include "base/task_runner_util.h"
 #include "brave/browser/brave_browser_process_impl.h"
-#include "brave/components/brave_shields/browser/dat_file_util.h"
-#include "brave/components/brave_shields/browser/local_data_files_service.h"
+#include "brave/components/brave_component_updater/browser/dat_file_util.h"
+#include "brave/components/brave_component_updater/browser/local_data_files_service.h"
+
+using brave_component_updater::LocalDataFilesObserver;
+using brave_component_updater::LocalDataFilesService;
 
 namespace greaselion {
 
@@ -140,8 +144,10 @@ void GreaselionRule::Populate(std::vector<std::string>* scripts) const {
   scripts->insert(scripts->end(), scripts_.begin(), scripts_.end());
 }
 
-GreaselionDownloadService::GreaselionDownloadService()
-    : task_runner_(base::CreateSequencedTaskRunnerWithTraits(
+GreaselionDownloadService::GreaselionDownloadService(
+    LocalDataFilesService* local_data_files_service)
+    : LocalDataFilesObserver(local_data_files_service),
+      task_runner_(base::CreateSequencedTaskRunnerWithTraits(
           {base::MayBlock(), base::TaskPriority::USER_VISIBLE,
            base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN})),
       weak_factory_(this) {
@@ -150,14 +156,14 @@ GreaselionDownloadService::GreaselionDownloadService()
 
 GreaselionDownloadService::~GreaselionDownloadService() {}
 
-void GreaselionDownloadService::OnDATFileDataReady() {
+void GreaselionDownloadService::OnDATFileDataReady(std::string contents) {
+  DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
   rules_.clear();
-  if (file_contents_.empty()) {
+  if (contents.empty()) {
     LOG(ERROR) << "Could not obtain Greaselion configuration";
     return;
   }
-  base::Optional<base::Value> root = base::JSONReader::Read(file_contents_);
-  file_contents_.clear();
+  base::Optional<base::Value> root = base::JSONReader::Read(contents);
   if (!root) {
     LOG(ERROR) << "Failed to parse Greaselion configuration";
     return;
@@ -187,12 +193,12 @@ void GreaselionDownloadService::OnComponentReady(
   base::FilePath dat_file_path =
       install_dir.AppendASCII(kGreaselionConfigFileVersion)
           .AppendASCII(kGreaselionConfigFile);
-  GetTaskRunner()->PostTaskAndReply(
-      FROM_HERE,
-      base::Bind(&brave_shields::GetDATFileAsString, dat_file_path,
-                 &file_contents_),
-      base::Bind(&GreaselionDownloadService::OnDATFileDataReady,
-                 weak_factory_.GetWeakPtr()));
+  base::PostTaskAndReplyWithResult(
+      local_data_files_service()->GetTaskRunner().get(), FROM_HERE,
+      base::BindOnce(&brave_component_updater::GetDATFileAsString,
+                     dat_file_path),
+      base::BindOnce(&GreaselionDownloadService::OnDATFileDataReady,
+                     weak_factory_.GetWeakPtr()));
 }
 
 scoped_refptr<base::SequencedTaskRunner>
@@ -203,12 +209,9 @@ GreaselionDownloadService::GetTaskRunner() {
 ///////////////////////////////////////////////////////////////////////////////
 
 // The factory
-std::unique_ptr<GreaselionDownloadService> GreaselionDownloadServiceFactory() {
-  std::unique_ptr<GreaselionDownloadService> service =
-      std::make_unique<GreaselionDownloadService>();
-  g_brave_browser_process->local_data_files_service()->AddObserver(
-      service.get());
-  return service;
+std::unique_ptr<GreaselionDownloadService> GreaselionDownloadServiceFactory(
+    LocalDataFilesService* local_data_files_service) {
+  return std::make_unique<GreaselionDownloadService>(local_data_files_service);
 }
 
 }  // namespace greaselion

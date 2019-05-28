@@ -5,11 +5,10 @@
 
 #include "brave/browser/greaselion/greaselion_tab_helper.h"
 
+#include "base/bind_helpers.h"
 #include "base/strings/utf_string_conversions.h"
-#include "brave/browser/brave_browser_process_impl.h"
 #include "brave/browser/greaselion/greaselion_service_factory.h"
 #include "brave/common/brave_isolated_worlds.h"
-#include "brave/components/greaselion/browser/greaselion_download_service.h"
 #include "brave/components/greaselion/browser/greaselion_service.h"
 #include "content/public/browser/browser_context.h"
 #include "content/public/browser/render_frame_host.h"

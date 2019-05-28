@@ -6,6 +6,7 @@
 #include "brave/browser/brave_tab_helpers.h"
 
 #include "brave/browser/brave_drm_tab_helper.h"
+#include "brave/browser/greaselion/greaselion_tab_helper.h"
 #include "brave/components/brave_ads/browser/ads_tab_helper.h"
 #include "brave/components/brave_rewards/browser/buildflags/buildflags.h"
 #include "brave/components/brave_shields/browser/buildflags/buildflags.h"  // For STP
@@ -22,7 +23,6 @@
 using brave_shields::TrackingProtectionHelper;
 #endif
 // Add tab helpers here unless they are intended for android too
-#include "brave/browser/greaselion/greaselion_tab_helper.h"
 #endif
 
 namespace brave {
@@ -35,7 +35,6 @@ void AttachTabHelpers(content::WebContents* web_contents) {
   brave_rewards::RewardsHelper::CreateForWebContents(web_contents);
 #endif
   // Add tab helpers here unless they are intended for android too
-  greaselion::GreaselionTabHelper::CreateForWebContents(web_contents);
   BraveDrmTabHelper::CreateForWebContents(web_contents);
 #if BUILDFLAG(BRAVE_STP_ENABLED)
   if (TrackingProtectionHelper::IsSmartTrackingProtectionEnabled()) {
@@ -45,6 +44,7 @@ void AttachTabHelpers(content::WebContents* web_contents) {
 #endif
 
   brave_ads::AdsTabHelper::CreateForWebContents(web_contents);
+  greaselion::GreaselionTabHelper::CreateForWebContents(web_contents);
 }
 
 }  // namespace brave

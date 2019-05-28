@@ -15,11 +15,14 @@
 #include "base/sequence_checker.h"
 #include "base/sequenced_task_runner.h"
 #include "base/values.h"
-#include "brave/components/brave_shields/browser/base_local_data_files_observer.h"
+#include "brave/components/brave_component_updater/browser/local_data_files_observer.h"
 #include "extensions/common/url_pattern_set.h"
 #include "url/gurl.h"
 
 class GreaselionServiceTest;
+
+using brave_component_updater::LocalDataFilesObserver;
+using brave_component_updater::LocalDataFilesService;
 
 namespace greaselion {
 
@@ -66,17 +69,17 @@ class GreaselionRule {
 // The Greaselion download service is in charge
 // of loading and parsing the Greaselion configuration file
 // and the scripts that the configuration file references
-class GreaselionDownloadService
-    : public brave_shields::BaseLocalDataFilesObserver {
+class GreaselionDownloadService : public LocalDataFilesObserver {
  public:
-  GreaselionDownloadService();
+  explicit GreaselionDownloadService(
+      LocalDataFilesService* local_data_files_service);
   ~GreaselionDownloadService() override;
 
   std::vector<std::unique_ptr<GreaselionRule>>* rules() { return &rules_; }
 
   scoped_refptr<base::SequencedTaskRunner> GetTaskRunner();
 
-  // implementation of BaseLocalDataFilesObserver
+  // implementation of LocalDataFilesObserver
   void OnComponentReady(const std::string& component_id,
                         const base::FilePath& install_dir,
                         const std::string& manifest) override;
@@ -84,10 +87,9 @@ class GreaselionDownloadService
  private:
   friend class ::GreaselionServiceTest;
 
-  void OnDATFileDataReady();
+  void OnDATFileDataReady(std::string contents);
   void LoadOnTaskRunner();
 
-  std::string file_contents_;
   std::vector<std::unique_ptr<GreaselionRule>> rules_;
   base::FilePath install_dir_;
   scoped_refptr<base::SequencedTaskRunner> task_runner_;
@@ -98,7 +100,8 @@ class GreaselionDownloadService
 };
 
 // Creates the GreaselionDownloadService
-std::unique_ptr<GreaselionDownloadService> GreaselionDownloadServiceFactory();
+std::unique_ptr<GreaselionDownloadService> GreaselionDownloadServiceFactory(
+    LocalDataFilesService* local_data_files_service);
 
 }  // namespace greaselion
 

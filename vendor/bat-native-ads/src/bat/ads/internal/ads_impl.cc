@@ -81,7 +81,8 @@ void AdsImpl::Initialize() {
 void AdsImpl::InitializeStep2() {
   client_->SetLocales(ads_client_->GetLocales());
 
-  LoadUserModel();
+  auto locale = ads_client_->GetAdsLocale();
+  ChangeLocale(locale);
 }
 
 void AdsImpl::InitializeStep3() {
@@ -158,20 +159,24 @@ void AdsImpl::OnUserModelLoaded(const Result result, const std::string& json) {
 
   BLOG(INFO) << "Successfully loaded user model";
 
-  InitializeUserModel(json);
+  auto locale = client_->GetLocale();
+  auto region = helper::Locale::GetCountryCode(locale);
+  InitializeUserModel(json, region);
 
   if (!IsInitialized()) {
     InitializeStep3();
   }
 }
 
-void AdsImpl::InitializeUserModel(const std::string& json) {
+void AdsImpl::InitializeUserModel(
+    const std::string& json,
+    const std::string& region) {
   // TODO(Terry Mancey): Refactor function to use callbacks
 
   BLOG(INFO) << "Initializing user model";
 
   user_model_.reset(usermodel::UserModel::CreateInstance());
-  user_model_->InitializePageClassifier(json);
+  user_model_->InitializePageClassifier(json, region);
 
   BLOG(INFO) << "Initialized user model";
 }
@@ -326,13 +331,7 @@ void AdsImpl::SetConfirmationsIsReady(const bool is_ready) {
 }
 
 void AdsImpl::ChangeLocale(const std::string& locale) {
-  if (!IsInitialized()) {
-    BLOG(WARNING) << "Failed to change locale as not initialized";
-    return;
-  }
-
   auto locales = ads_client_->GetLocales();
-
   if (std::find(locales.begin(), locales.end(), locale) != locales.end()) {
     BLOG(INFO) << "Change Localed to " << locale;
     client_->SetLocale(locale);
@@ -445,7 +444,7 @@ std::string AdsImpl::GetWinnerOverTimeCategory() {
 
 std::string AdsImpl::GetWinningCategory(
     const std::vector<double>& page_score) {
-  return user_model_->WinningCategory(page_score);
+  return user_model_->GetWinningCategory(page_score);
 }
 
 std::string AdsImpl::GetWinningCategory(const std::string& html) {

@@ -20,7 +20,6 @@
 #include "brave/common/pref_names.h"
 #include "brave/components/brave_component_updater/browser/dat_file_util.h"
 #include "brave/components/brave_shields/common/brave_shield_constants.h"
-#include "brave/vendor/ad-block/ad_block_client.h"
 #include "brave/vendor/adblock_rust_ffi/src/wrapper.hpp"
 #include "components/prefs/pref_service.h"
 #include "content/public/browser/browser_task_traits.h"
@@ -38,118 +37,51 @@ std::string ResourceTypeToString(content::ResourceType resource_type) {
   std::string filter_option = "";
   switch (resource_type) {
     // top level page
-    case content::RESOURCE_TYPE_MAIN_FRAME:
+    case content::ResourceType::kMainFrame:
       filter_option = "main_frame";
       break;
     // frame or iframe
-    case content::RESOURCE_TYPE_SUB_FRAME:
+    case content::ResourceType::kSubFrame:
       filter_option = "sub_frame";
       break;
     // a CSS stylesheet
-    case content::RESOURCE_TYPE_STYLESHEET:
+    case content::ResourceType::kStylesheet:
       filter_option = "stylesheet";
       break;
     // an external script
-    case content::RESOURCE_TYPE_SCRIPT:
-      filter_option = "script";
-      break;
-    // an image (jpg/gif/png/etc)
-    case content::RESOURCE_TYPE_FAVICON:
-    case content::RESOURCE_TYPE_IMAGE:
-      filter_option = "image";
-      break;
-    // a font
-    case content::RESOURCE_TYPE_FONT_RESOURCE:
-      filter_option = "font";
-      break;
-    // an "other" subresource.
-    case content::RESOURCE_TYPE_SUB_RESOURCE:
-      filter_option = "other";
-      break;
-    // an object (or embed) tag for a plugin.
-    case content::RESOURCE_TYPE_OBJECT:
-      filter_option = "object";
-      break;
-    // a media resource.
-    case content::RESOURCE_TYPE_MEDIA:
-      filter_option = "media";
-      break;
-    // a XMLHttpRequest
-    case content::RESOURCE_TYPE_XHR:
-      filter_option = "xhr";
-      break;
-    // a ping request for <a ping>/sendBeacon.
-    case content::RESOURCE_TYPE_PING:
-      filter_option = "ping";
-      break;
-    // the main resource of a dedicated
-    case content::RESOURCE_TYPE_WORKER:
-    // the main resource of a shared worker.
-    case content::RESOURCE_TYPE_SHARED_WORKER:
-    // an explicitly requested prefetch
-    case content::RESOURCE_TYPE_PREFETCH:
-    // the main resource of a service worker.
-    case content::RESOURCE_TYPE_SERVICE_WORKER:
-    // a report of Content Security Policy
-    case content::RESOURCE_TYPE_CSP_REPORT:
-    // a resource that a plugin requested.
-    case content::RESOURCE_TYPE_PLUGIN_RESOURCE:
-    case content::RESOURCE_TYPE_LAST_TYPE:
-    default:
-      break;
-  }
-  return filter_option;
-}
-
-FilterOption ResourceTypeToFilterOption(content::ResourceType resource_type) {
-  FilterOption filter_option = FONoFilterOption;
-  switch (resource_type) {
-    // top level page
-    case content::ResourceType::kMainFrame:
-      filter_option = FODocument;
-      break;
-    // frame or iframe
-    case content::ResourceType::kSubFrame:
-      filter_option = FOSubdocument;
-      break;
-    // a CSS stylesheet
-    case content::ResourceType::kStylesheet:
-      filter_option = FOStylesheet;
-      break;
-    // an external script
     case content::ResourceType::kScript:
-      filter_option = FOScript;
+      filter_option = "script";
       break;
     // an image (jpg/gif/png/etc)
     case content::ResourceType::kFavicon:
     case content::ResourceType::kImage:
-      filter_option = FOImage;
+      filter_option = "image";
       break;
     // a font
     case content::ResourceType::kFontResource:
-      filter_option = FOFont;
+      filter_option = "font";
       break;
     // an "other" subresource.
     case content::ResourceType::kSubResource:
-      filter_option = FOOther;
+      filter_option = "other";
       break;
     // an object (or embed) tag for a plugin.
     case content::ResourceType::kObject:
-      filter_option = FOObject;
+      filter_option = "object";
       break;
     // a media resource.
     case content::ResourceType::kMedia:
-      filter_option = FOMedia;
+      filter_option = "media";
       break;
     // a XMLHttpRequest
     case content::ResourceType::kXhr:
-      filter_option = FOXmlHttpRequest;
+      filter_option = "xhr";
       break;
     // a ping request for <a ping>/sendBeacon.
     case content::ResourceType::kPing:
-      filter_option = FOPing;
+      filter_option = "ping";
       break;
-    // the main resource of a dedicated worker.
+    // the main resource of a dedicated
     case content::ResourceType::kWorker:
     // the main resource of a shared worker.
     case content::ResourceType::kSharedWorker:
@@ -157,14 +89,10 @@ FilterOption ResourceTypeToFilterOption(content::ResourceType resource_type) {
     case content::ResourceType::kPrefetch:
     // the main resource of a service worker.
     case content::ResourceType::kServiceWorker:
-    // a report of Content Security Policy violations.
+    // a report of Content Security Policy
     case content::ResourceType::kCspReport:
     // a resource that a plugin requested.
     case content::ResourceType::kPluginResource:
-    // a service worker navigation preload request.
-    case content::ResourceType::kNavigationPreload:
-    // an invalid type (see brave/browser/net/url_context.h)
-    case brave::BraveRequestInfo::kInvalidResourceType:
     default:
       break;
   }
@@ -177,10 +105,9 @@ namespace brave_shields {
 
 AdBlockBaseService::AdBlockBaseService(BraveComponent::Delegate* delegate)
     : BaseBraveShieldsService(delegate),
-      ad_block_client_(new AdBlockClient()),
+      ad_block_client_(new adblock::Engine("||brianbondy.com")),
       weak_factory_(this),
-      weak_factory_io_thread_(this),
-      ad_block_client2_(new adblock::Blocker("||brianbondy.com")) {
+      weak_factory_io_thread_(this) {
   DETACH_FROM_SEQUENCE(sequence_checker_);
 }
 
@@ -197,35 +124,25 @@ bool AdBlockBaseService::ShouldStartRequest(const GURL& url,
     content::ResourceType resource_type, const std::string& tab_host,
     bool* did_match_exception, bool* cancel_request_explicitly) {
   DCHECK_CURRENTLY_ON(BrowserThread::IO);
-  FilterOption current_option = ResourceTypeToFilterOption(resource_type);
 
   // Determine third-party here so the library doesn't need to figure it out.
   // CreateFromNormalizedTuple is needed because SameDomainOrHost needs
   // a URL or origin and not a string to a host name.
-  url::Origin tab_origin(url::Origin::CreateFromNormalizedTuple(
-        "https", tab_host.c_str(), 80));
-  if (SameDomainOrHost(url, tab_origin, INCLUDE_PRIVATE_REGISTRIES)) {
-    current_option = static_cast<FilterOption>(
-        current_option | FONotThirdParty);
-  } else {
-    current_option = static_cast<FilterOption>(current_option | FOThirdParty);
-  }
-
-  Filter* matching_filter = nullptr;
-  Filter* matching_exception_filter = nullptr;
-  if (ad_block_client2_->Matches(url.spec(),
-        tab_origin.GetURL().spec(), ResourceTypeToString(resource_type))) {
-    return false;
-  }
-  if (ad_block_client_->matches(url.spec().c_str(),
-        current_option, tab_host.c_str(), &matching_filter,
-        &matching_exception_filter)) {
-    if (matching_filter && cancel_request_explicitly &&
-        (matching_filter->filterOption & FOExplicitCancel)) {
-      *cancel_request_explicitly = true;
+  bool is_third_party = !SameDomainOrHost(url,
+      url::Origin::CreateFromNormalizedTuple("https", tab_host.c_str(), 80),
+      INCLUDE_PRIVATE_REGISTRIES);
+  bool explicit_cancel;
+  bool saved_from_exception;
+  if (ad_block_client_->matches(url.spec(), url.host(),
+        tab_host, is_third_party, ResourceTypeToString(resource_type),
+        &explicit_cancel, &saved_from_exception)) {
+    if (cancel_request_explicitly) {
+      *cancel_request_explicitly = explicit_cancel;
     }
     // We'd only possibly match an exception filter if we're returning true.
-    *did_match_exception = false;
+    if (did_match_exception) {
+      *did_match_exception = false;
+    }
     // LOG(ERROR) << "AdBlockBaseService::ShouldStartRequest(), host: "
     //  << tab_host
     //  << ", resource type: " << resource_type
@@ -234,7 +151,7 @@ bool AdBlockBaseService::ShouldStartRequest(const GURL& url,
   }
 
   if (did_match_exception) {
-    *did_match_exception = !!matching_exception_filter;
+    *did_match_exception = saved_from_exception;
   }
 
   return true;
@@ -264,7 +181,7 @@ void AdBlockBaseService::GetDATFileData(const base::FilePath& dat_file_path) {
       GetTaskRunner().get(),
       FROM_HERE,
       base::BindOnce(
-          &brave_component_updater::LoadDATFileData<AdBlockClient>,
+          &brave_component_updater::LoadDATFileData<adblock::Engine>,
           dat_file_path),
       base::BindOnce(&AdBlockBaseService::OnGetDATFileData,
                      weak_factory_.GetWeakPtr()));
@@ -289,19 +206,18 @@ void AdBlockBaseService::OnGetDATFileData(GetDATFileDataResult result) {
 }
 
 void AdBlockBaseService::UpdateAdBlockClient(
-    std::unique_ptr<AdBlockClient> ad_block_client,
+    std::unique_ptr<adblock::Engine> ad_block_client,
     brave_component_updater::DATFileDataBuffer buffer) {
   DCHECK_CURRENTLY_ON(BrowserThread::IO);
   ad_block_client_ = std::move(ad_block_client);
   buffer_ = std::move(buffer);
 }
 
-
 bool AdBlockBaseService::Init() {
   return true;
 }
 
-AdBlockClient* AdBlockBaseService::GetAdBlockClientForTest() {
+adblock::Engine* AdBlockBaseService::GetAdBlockClientForTest() {
   return ad_block_client_.get();
 }
 

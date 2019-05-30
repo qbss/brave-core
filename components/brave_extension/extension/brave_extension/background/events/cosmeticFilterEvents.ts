@@ -66,9 +66,11 @@ chrome.contextMenus.onClicked.addListener(function (info: chrome.contextMenus.On
 
 // content script listener for right click DOM selection event
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  console.log('BSC]] in code: onMessage handler: ' + JSON.stringify(msg))
   const action = typeof msg === 'string' ? msg : msg.type
   switch (action) {
     case 'contextMenuOpened': {
+      console.log('BSC]] in code: onMessage handler: specifically got `contextMenuOpened` event type')
       rule.host = msg.baseURI
       break
     }

@@ -78,8 +78,13 @@ export const blockedResource: BlockDetails = {
   subresource: 'https://www.brave.com/test'
 }
 
+// see: https://developer.chrome.com/extensions/events
+interface OnMessageEvent extends chrome.events.Event<(message: object, options: any, responseCallback: any) => void> {
+  emit: (message: object) => void
+}
+
 export const getMockChrome = () => {
-  return {
+  let mock = {
     send: () => undefined,
     getVariableValue: () => undefined,
     braveRewards: {
@@ -90,7 +95,14 @@ export const getMockChrome = () => {
       onConnect: new ChromeEvent(),
       onStartup: new ChromeEvent(),
       onMessageExternal: new ChromeEvent(),
-      onConnectExternal: new ChromeEvent()
+      onConnectExternal: new ChromeEvent(),
+      // see: https://developer.chrome.com/apps/runtime#method-sendMessage
+      sendMessage: function (message: object, responseCallback: () => void) {
+        console.log('BSC]] in mock: sendMessage called: ' + JSON.stringify(message))
+        const onMessage = chrome.runtime.onMessage as OnMessageEvent
+        onMessage.emit(message)
+        responseCallback()
+      }
     },
     browserAction: {
       setBadgeBackgroundColor: function (properties: object) {
@@ -201,6 +213,7 @@ export const getMockChrome = () => {
       // }
     }
   }
+  return mock
 }
 
 export const initialState = deepFreeze({

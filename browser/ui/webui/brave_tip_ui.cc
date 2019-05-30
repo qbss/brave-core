@@ -347,7 +347,7 @@ void RewardsTipDOMHandler::OnRecurringTipSaved(
 }
 
 void RewardsTipDOMHandler::TweetTip(const base::ListValue *args) {
-  DCHECK_EQ(args->GetSize(), 2U);
+  DCHECK_EQ(args->GetSize(), 3U);
 
   if (!rewards_service_)
     return;
@@ -359,10 +359,13 @@ void RewardsTipDOMHandler::TweetTip(const base::ListValue *args) {
   std::string tweet_id;
   if (!args->GetString(1, &tweet_id))
     return;
+  std::string provider;
+  if (!args->GetString(2, &provider))
+     return;
 
   // Share the tip comment/compliment on Twitter.
   std::string comment = l10n_util::GetStringFUTF8(
-      IDS_BRAVE_REWARDS_LOCAL_COMPLIMENT_TWEET, base::UTF8ToUTF16(name));
+      IDS_BRAVE_REWARDS_LOCAL_COMPLIMENT_TWEET, base::UTF8ToUTF16(name), base::UTF8ToUTF16(provider));
   std::string hashtag = l10n_util::GetStringUTF8(
       IDS_BRAVE_REWARDS_LOCAL_COMPLIMENT_TWEET_HASHTAG);
   std::map<std::string, std::string> share_url_args;

@@ -219,8 +219,21 @@ class BraveRewardsBrowserTest :
         *response = brave_test_resp::surveyor_voting_;
     } else if (URLMatches(url, GET_PUBLISHERS_LIST_V1, "",
                           SERVER_TYPES::PUBLISHER_DISTRO)) {
-      *response =
-          "[[\"bumpsmack.com\",true,false],[\"duckduckgo.com\",true,false]]";
+      if (alter_publisher_list_) {
+        *response =
+            "["
+            "[\"bumpsmack.com\",true,false],"
+            "[\"duckduckgo.com\",true,false],"
+            "[\"3zsistemi.si\",false,false]"
+            "]";
+      } else {
+        *response =
+            "["
+            "[\"bumpsmack.com\",true,false],"
+            "[\"duckduckgo.com\",true,false],"
+            "[\"3zsistemi.si\",true,false]"
+            "]";
+      }
     }
   }
 
@@ -566,12 +579,15 @@ class BraveRewardsBrowserTest :
     }
   }
 
-  void TipPublisher(const std::string& publisher, bool verified, bool monthly) {
+  void TipPublisher(const std::string& publisher,
+                    bool verified,
+                    bool monthly = false,
+                    int32_t selection = 1) {
     // Claim grant using settings page
     const bool use_panel = true;
     ClaimGrant(use_panel);
 
-    // Navigate to a verified site in a new tab
+    // Navigate to a site in a new tab
     GURL url = embedded_test_server()->GetURL(publisher, "/index.html");
     ui_test_utils::NavigateToURLWithDisposition(
         browser(), url, WindowOpenDisposition::NEW_FOREGROUND_TAB,
@@ -629,7 +645,8 @@ class BraveRewardsBrowserTest :
         site_banner_contents,
         "const delay = t => new Promise(resolve => setTimeout(resolve, t));"
         "delay(0).then(() => "
-        "  document.getElementsByTagName('button')[1].click());",
+        "document.getElementsByTagName('button')"
+        "[" + std::to_string(selection) + "].click());",
         content::EXECUTE_SCRIPT_DEFAULT_OPTIONS,
         content::ISOLATED_WORLD_ID_CONTENT_END));
 
@@ -952,6 +969,7 @@ class BraveRewardsBrowserTest :
   bool tip_made = false;
   bool ac_low_amount_ = false;
   bool last_publisher_added_ = false;
+  bool alter_publisher_list_ = false;
 };
 
 IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest, RenderWelcome) {
@@ -1447,8 +1465,7 @@ IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest, TipVerifiedPublisher) {
 
   // Tip verified publisher
   const bool verified = true;
-  const bool monthly = false;
-  TipPublisher("duckduckgo.com", verified, monthly);
+  TipPublisher("duckduckgo.com", verified);
 
   // Stop observing the Rewards service
   rewards_service_->RemoveObserver(this);
@@ -1464,8 +1481,7 @@ IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest, TipUnverifiedPublisher) {
 
   // Tip unverified publisher
   const bool verified = false;
-  const bool monthly = false;
-  TipPublisher("google.com", verified, monthly);
+  TipPublisher("google.com", verified);
 
   // Stop observing the Rewards service
   rewards_service_->RemoveObserver(this);
@@ -1597,7 +1613,7 @@ IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
   EnableRewards();
 
   // Tip unverified publisher
-  TipPublisher(publisher, false, false);
+  TipPublisher(publisher, false);
 
   // Check that link for pending is shown
   {
@@ -1699,6 +1715,9 @@ IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest, AddFundsCountryLimited) {
     content::EXECUTE_SCRIPT_DEFAULT_OPTIONS,
     content::ISOLATED_WORLD_ID_CONTENT_END);
   ASSERT_TRUE(js_result.ExtractBool());
+
+  // Stop observing the Rewards service
+  rewards_service_->RemoveObserver(this);
 }
 
 IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
@@ -1723,6 +1742,9 @@ IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
     }
   }
   EXPECT_FALSE(notification_shown);
+
+  // Stop observing the Rewards service
+  rewards_service_->RemoveObserver(this);
 }
 
 IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
@@ -1760,6 +1782,9 @@ IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
     }
   }
   EXPECT_FALSE(notification_shown);
+
+  // Stop observing the Rewards service
+  rewards_service_->RemoveObserver(this);
 }
 
 IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
@@ -1799,6 +1824,9 @@ IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
     }
   }
   EXPECT_FALSE(notification_shown);
+
+  // Stop observing the Rewards service
+  rewards_service_->RemoveObserver(this);
 }
 
 IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
@@ -1837,6 +1865,10 @@ IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
     }
   }
   EXPECT_TRUE(notification_shown);
+
+
+  // Stop observing the Rewards service
+  rewards_service_->RemoveObserver(this);
 }
 
 // Test whether rewards is diabled in private profile.
@@ -1849,4 +1881,99 @@ IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest, PrefsTestInPrivateWindow) {
   Profile* private_profile = profile->GetOffTheRecordProfile();
   EXPECT_FALSE(private_profile->GetPrefs()->GetBoolean(
       brave_rewards::prefs::kBraveRewardsEnabled));
+}
+
+IN_PROC_BROWSER_TEST_F(BraveRewardsBrowserTest,
+                       ProcessPendingContributions) {
+  rewards_service_->AddObserver(this);
+  rewards_service_->GetNotificationService()->AddObserver(this);
+
+  alter_publisher_list_ = true;
+
+  EnableRewards();
+
+  // Claim grant using panel
+  const bool use_panel = true;
+  ClaimGrant(use_panel);
+
+  // Tip unverified publisher
+  TipPublisher("brave.com", false);
+//  TipPublisher("3zsistemi.si", false, false, 3);
+//  TipPublisher("3zsistemi.si", false, false, 3);
+//  TipPublisher("3zsistemi.si", false, false, 2);
+//  TipPublisher("brave.com", false);
+//  TipPublisher("3zsistemi.si", false, false, 3);
+//
+//  // Open modal
+//  {
+//    ASSERT_TRUE(ExecJs(contents(),
+//        "if (document.querySelector(\"[data-test-id='reservedAllLink']\")) {"
+//        "  document.querySelector("
+//        "      \"[data-test-id='reservedAllLink']\").click();"
+//        "}",
+//        content::EXECUTE_SCRIPT_DEFAULT_OPTIONS,
+//        content::ISOLATED_WORLD_ID_CONTENT_END));
+//  }
+//
+//  // Make sure that table is populated
+//  {
+//    content::EvalJsResult js_result = EvalJs(
+//        contents(),
+//        "const delay = t => new Promise(resolve => setTimeout(resolve, t));"
+//        "delay(0).then(() => "
+//        " document.querySelector(\"[id='pendingContributionTable']\")"
+//        "    .getElementsByTagName('a')[0].innerText);",
+//        content::EXECUTE_SCRIPT_DEFAULT_OPTIONS,
+//        content::ISOLATED_WORLD_ID_CONTENT_END);
+//    EXPECT_NE(
+//        js_result.ExtractString().find("brave.com"),
+//        std::string::npos);
+//  }
+//
+//  // Make sure that table is populated
+//  {
+//    content::EvalJsResult js_result = EvalJs(
+//        contents(),
+//        "const delay = t => new Promise(resolve => setTimeout(resolve, t));"
+//        "delay(0).then(() => "
+//        " document.querySelector(\"[id='pendingContributionTable']\")"
+//        "    .getElementsByTagName('a')[5].innerText);",
+//        content::EXECUTE_SCRIPT_DEFAULT_OPTIONS,
+//        content::ISOLATED_WORLD_ID_CONTENT_END);
+//    EXPECT_NE(
+//        js_result.ExtractString().find("3zsistemi.si"),
+//        std::string::npos);
+//  }
+//
+//
+//  // Open the Rewards popup
+//  content::WebContents* popup_contents = OpenRewardsPopup();
+//  ASSERT_TRUE(popup_contents);
+//
+//  // Click button to initiate sending a tip
+//  content::EvalJsResult js_result = EvalJs(
+//    popup_contents,
+//    "new Promise((resolve) => {"
+//    "let count = 10;"
+//    "var interval = setInterval(function() {"
+//    "  if (count === 0) {"
+//    "    clearInterval(interval);"
+//    "    resolve('');"
+//    "  } else {"
+//    "    count -= 1;"
+//    "  }"
+//    "  const verifiedButton = "
+//    "  document.querySelector(\"[data-test-id='unverified-check-button']\");"
+//    "  if (verifiedButton) {"
+//    "    clearInterval(interval);"
+//    "    verifiedButton.click();"
+//    "    resolve(true);"
+//    "  }"
+//    "}, 500);});",
+//    content::EXECUTE_SCRIPT_DEFAULT_OPTIONS,
+//    content::ISOLATED_WORLD_ID_CONTENT_END);
+
+
+  // Stop observing the Rewards service
+  rewards_service_->RemoveObserver(this);
 }

@@ -1,0 +1,12 @@
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
+index a89b1766ea3987f3479288c3041d5f869b75804a..1faaba615c64abdfccd1ca08f829f0bcdfe350e3 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/firstrun/FirstRunFlowSequencer.java
+@@ -249,6 +249,7 @@ public abstract class FirstRunFlowSequencer  {
+         // If FRE is disabled (e.g. in tests), proceed directly to the intent handling.
+         if (CommandLine.getInstance().hasSwitch(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)
+                 || ApiCompatibilityUtils.isDemoUser(context)) {
++            FirstRunStatus.setFirstRunFlowComplete(true);
+             return false;
+         }
+ 

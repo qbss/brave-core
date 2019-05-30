@@ -1,0 +1,12 @@
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/init/ChromeBrowserInitializer.java b/chrome/android/java/src/org/chromium/chrome/browser/init/ChromeBrowserInitializer.java
+index 5380ce0f0b8203e52875d3128c9da0b6cdee4090..8d907fd5f6e371689b53051f7eac2bcaf72c3a06 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/init/ChromeBrowserInitializer.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/init/ChromeBrowserInitializer.java
+@@ -203,6 +203,7 @@ public class ChromeBrowserInitializer {
+         if (SysUtils.isLowEndDevice()) {
+             CommandLine.getInstance().appendSwitch(ChromeSwitches.DISABLE_DOMAIN_RELIABILITY);
+         }
++        CommandLine.getInstance().appendSwitch(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE);
+     }
+ 
+     /**

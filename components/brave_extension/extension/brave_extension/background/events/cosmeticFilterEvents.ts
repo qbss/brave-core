@@ -32,7 +32,7 @@ chrome.contextMenus.create({
 })
 
 // contextMenu listener - when triggered, grab latest selector
-chrome.contextMenus.onClicked.addListener(function (info, tab) {
+chrome.contextMenus.onClicked.addListener(function (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) {
   switch (info.menuItemId) {
     case 'addBlockElement': {
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs: any) {

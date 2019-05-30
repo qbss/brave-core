@@ -190,6 +190,15 @@ export const getMockChrome = () => {
       search: function () {
         return
       }
+    },
+    contextMenus: {
+      create: function (data: any) {
+        return Promise.resolve()
+      },
+      onClicked: new ChromeEvent()
+      // {
+      //   addListener: new ChromeEvent()
+      // }
     }
   }
 }

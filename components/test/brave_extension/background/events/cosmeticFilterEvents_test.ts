@@ -6,36 +6,38 @@ import * as sinon from 'sinon'
 import cosmeticFilterActions from '../../../../brave_extension/extension/brave_extension/background/actions/cosmeticFilterActions'
 import { ChromeEvent } from '../../../testData'
 import '../../../../brave_extension/extension/brave_extension/background/events/cosmeticFilterEvents'
+import { rule } from '../../../../brave_extension/extension/brave_extension/background/events/cosmeticFilterEvents'
 
 // interface ContextMenuClickedEvent extends chrome.events.Event<(activeInfo: chrome.contextMenus.MenuClickedEvent) => void> {
 //   emit: (detail: chrome.contextMenus.MenuClickedEvent) => void
 // }
 // let msg = { baseURI: 'brave.com' }
 
-interface ContextMenuClickedEvent extends chrome.events.Event<(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => void> {
+// interface ContextMenuClickedEvent extends chrome.events.Event<(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => void> {
   // emit: (detail: chrome.contextMenus.MenuClickedEvent) => void
-}
+// }
 
 describe('cosmeticFilterEvents events', () => {
   describe('when runtime.onMessage is received', () => {
     describe('contextMenuOpened', () => {
       it('assigns the base URI', () => {
-        chrome.runtime.sendMessage({type: 'contextMenuOpened', baseURL: 'brave.com'},
+        chrome.runtime.sendMessage({ type: 'contextMenuOpened', baseURI: 'brave.com' },
            () => {
-             // TODO:
-             // expect(rule.host).toBe('brave.com')
+             expect(rule.host).toBe('brave.com')
            })
-       })
+      })
     })
   })
 
   describe('when context menu is clicked', () => {
     describe('addBlockElement', () => {
       it('sends a message to get selector', () => {
-
+        // chrome.tabs.sendMessage({ , { type: 'getTargetSelector' }, () => {
+          // test
+        // })
       })
 
-      describe('when selector returned is empty/null', ()=> {
+      describe('when selector returned is empty/null', () => {
         it('calls window.prompt with `cant find`', () => {
 
         })

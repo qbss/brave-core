@@ -5,7 +5,7 @@
 import * as sinon from 'sinon'
 import cosmeticFilterActions from '../../../../brave_extension/extension/brave_extension/background/actions/cosmeticFilterActions'
 import { ChromeEvent } from '../../../testData'
-import '../../../../brave_extension/extension/brave_extension/background/events/cosmeticFilterEvents'
+// import '../../../../brave_extension/extension/brave_extension/background/events/cosmeticFilterEvents'
 import { rule } from '../../../../brave_extension/extension/brave_extension/background/events/cosmeticFilterEvents'
 
 // interface ContextMenuClickedEvent extends chrome.events.Event<(activeInfo: chrome.contextMenus.MenuClickedEvent) => void> {
@@ -31,15 +31,17 @@ describe('cosmeticFilterEvents events', () => {
 
   describe('when context menu is clicked', () => {
     describe('addBlockElement', () => {
+      let spy: jest.SpyInstance
       it('sends a message to get selector', () => {
-        // chrome.tabs.sendMessage({ , { type: 'getTargetSelector' }, () => {
-          // test
-        // })
+        chrome.runtime.sendMessage({ type: 'contextMenuOpened', baseURI: 'brave.com' },
+          () => {
+            expect(rule.host).toBe('brave.com')
+          })
       })
 
       describe('when selector returned is empty/null', () => {
         it('calls window.prompt with `cant find`', () => {
-
+          expect(window.prompt()).toBeCalled()
         })
       })
 

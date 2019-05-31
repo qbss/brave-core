@@ -98,7 +98,7 @@ export const getMockChrome = () => {
       onConnectExternal: new ChromeEvent(),
       // see: https://developer.chrome.com/apps/runtime#method-sendMessage
       sendMessage: function (message: object, responseCallback: () => void) {
-        console.log('BSC]] in mock: sendMessage called: ' + JSON.stringify(message))
+        console.log('BSC]] in mock:5 sendMessage called: ' + JSON.stringify(message))
         const onMessage = chrome.runtime.onMessage as OnMessageEvent
         onMessage.emit(message)
         responseCallback()
